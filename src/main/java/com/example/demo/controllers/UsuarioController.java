@@ -29,23 +29,25 @@ public class UsuarioController {
     private UsuarioService usuarioService;
 
     @PostMapping
-    public String crear(
-            @RequestBody CrearUsuarioDTO dto)
-            throws Exception {
+    public Map<String, Object> crear(@RequestBody CrearUsuarioDTO dto) throws Exception {
 
         Usuario usuario = new Usuario();
-
         usuario.setNombres(dto.getNombres());
         usuario.setApellidos(dto.getApellidos());
         usuario.setTelefono(dto.getTelefono());
         usuario.setRol(dto.getRol());
 
-        return usuarioService.crearUsuario(
+        String uid = usuarioService.crearUsuario(
                 dto.getEmail(),
                 dto.getPassword(),
-                usuario);
-    }
+                usuario
+        );
 
+        return Map.of(
+                "uid", uid,
+                "message", "Usuario creado correctamente"
+        );
+    }
     @GetMapping
     public List<Usuario> listar() throws Exception {
         return service.getAll("usuarios", Usuario.class);

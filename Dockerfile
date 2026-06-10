@@ -6,11 +6,14 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 
+RUN mvn clean package -DskipTests
+
+# Imagen ligera para ejecutar
+FROM eclipse-temurin:17-jdk
+
 RUN apt-get update && apt-get install -y tzdata && \
     ln -sf /usr/share/zoneinfo/America/Lima /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata
-# Imagen ligera para ejecutar
-FROM eclipse-temurin:17-jdk
 
 WORKDIR /app
 
