@@ -19,4 +19,5 @@ public class Pelicula implements FirestoreEntity{
     private String imagenUrl;
     private Boolean activo;
     private Timestamp createAt;
+    private String fechaEstreno;
 }
