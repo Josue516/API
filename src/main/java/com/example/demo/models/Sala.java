@@ -14,5 +14,5 @@ public class Sala implements FirestoreEntity{
     private String nombre;
     private int capacidad;
     private String tipoSala;
-    private boolean activo;
+    private Boolean activo;
 }

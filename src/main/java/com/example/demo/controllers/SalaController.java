@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,8 +25,10 @@ public class SalaController {
     private FirestoreService service;
 
     @PostMapping
-    public String crear(@RequestBody Sala s) throws Exception {
-        return service.create("salas", s);
+    public ResponseEntity<Map<String, String>> crear(@RequestBody Sala s) throws Exception {
+        if (s.getActivo() == null) s.setActivo(true);
+        String id = service.create("salas", s);
+        return ResponseEntity.ok(Map.of("id", id));
     }
 
     @GetMapping
@@ -48,21 +51,17 @@ public class SalaController {
     }
 
     @PutMapping("/{id}")
-    public void editar(
+    public ResponseEntity<Void> editar(
             @PathVariable String id,
             @RequestBody Map<String, Object> data) throws Exception {
-
         service.update("salas", id, data);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable String id) throws Exception {
-
-        service.softDelete(
-                "salas",
-                id,
-                "activo",
-                false);
+    public ResponseEntity<Void> eliminar(@PathVariable String id) throws Exception {
+        service.softDelete("salas", id, "activo", false);
+        return ResponseEntity.noContent().build();
     }
     @GetMapping("/sede/{sedeId}")
     public List<Sala> porSede(@PathVariable String sedeId) throws Exception {

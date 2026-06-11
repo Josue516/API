@@ -4,12 +4,12 @@ import com.example.demo.models.Pelicula;
 import com.example.demo.service.FirestoreService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/peliculas")
@@ -38,17 +38,15 @@ public class PeliculaController {
     }
 
     @PutMapping("/{id}")
-    public void editar(@PathVariable String id,
-                       @RequestBody Map<String, Object> data) throws Exception {
-        service.update("peliculas", id, data);
+    public ResponseEntity<Void> editar(@PathVariable String id,
+                                       @RequestBody Pelicula p) throws Exception {
+        service.update("peliculas", id, p);
+        return ResponseEntity.noContent().build(); // 204
     }
 
     @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable String id) throws Exception {
-        service.softDelete(
-                "peliculas",
-                id,
-                "activo",
-                false);
+    public ResponseEntity<Void> eliminar(@PathVariable String id) throws Exception {
+        service.softDelete("peliculas", id, "activo", false);
+        return ResponseEntity.noContent().build();
     }
 }

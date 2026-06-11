@@ -80,10 +80,11 @@ public class FirestoreService {
     }
 
     // UPDATE parcial
-    public void update(String collection, String id, Map<String, Object> data) throws Exception {
+    public <T> void update(String collection, String id, T obj) throws Exception {
+
         firestore.collection(collection)
                 .document(id)
-                .set(data, SetOptions.merge());
+                .set(obj, SetOptions.merge());
     }
 
     // DELETE físico (o puedes cambiar a lógico)
@@ -102,9 +103,9 @@ public class FirestoreService {
                 .document(id)
                 .get()
                 .get();
+        
 
         T obj = doc.toObject(clazz);
-
         if (obj != null) {
             obj.setId(doc.getId());
         }

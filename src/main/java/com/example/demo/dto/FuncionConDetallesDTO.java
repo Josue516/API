@@ -1,4 +1,6 @@
-package com.example.demo.models;
+package com.example.demo.dto;
+
+import com.example.demo.models.Pelicula;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,12 +9,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Funcion implements FirestoreEntity{
-
+public class FuncionConDetallesDTO {
     private String id;
-    private String peliculaId;
-    private String salaId;
     private Long fechaHora;
     private double precio;
     private String estado;
+    private Pelicula pelicula;
+    private SalaConSedeDTO sala;
 }

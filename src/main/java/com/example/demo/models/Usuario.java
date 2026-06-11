@@ -1,7 +1,5 @@
 package com.example.demo.models;
 
-import com.google.cloud.Timestamp;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,6 +15,6 @@ public class Usuario implements FirestoreEntity{
     private String apellidos;
     private String telefono;
     private String rol;
-    private Timestamp createdAt;
+    private Long createdAt;
     private Boolean activo;
 }

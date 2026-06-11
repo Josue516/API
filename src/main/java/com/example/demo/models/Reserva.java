@@ -1,7 +1,5 @@
 package com.example.demo.models;
 
-import com.google.cloud.Timestamp;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,6 +15,6 @@ public class Reserva implements FirestoreEntity{
     private int cantidadBoletos;
     private double total;
     private String estado;
-    private Timestamp createdAt;
+    private Long createdAt;
     private Pago pago;
 }

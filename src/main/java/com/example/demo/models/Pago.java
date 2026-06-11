@@ -14,5 +14,5 @@ public class Pago {
     private double monto;
     private String moneda;
     private String estado;
-    private String fechaPago;
+    private Long fechaPago;
 }

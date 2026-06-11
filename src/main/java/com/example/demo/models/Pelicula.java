@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.List;
-import com.google.cloud.Timestamp;
 
 @Data
 @NoArgsConstructor
@@ -18,6 +17,6 @@ public class Pelicula implements FirestoreEntity{
     private List<String> generos; 
     private String imagenUrl;
     private Boolean activo;
-    private Timestamp createAt;
+    private Long createAt;
     private String fechaEstreno;
 }
