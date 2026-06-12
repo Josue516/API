@@ -15,6 +15,7 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.JoinColumn;
@@ -44,7 +45,7 @@ public class Pelicula {
     @Column(name = "clasificacion", nullable = false)
     private ClasificacionPelicula clasificacion;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     @CollectionTable(
         name = "peliculaGeneros",
