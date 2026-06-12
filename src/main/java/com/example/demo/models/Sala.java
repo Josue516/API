@@ -29,7 +29,7 @@ public class Sala {
     @Column(name = "id", nullable = false, length = 36)
     private String id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "sedeId", nullable = false)
     private Sede sede;
 

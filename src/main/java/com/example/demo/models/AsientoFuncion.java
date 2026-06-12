@@ -36,11 +36,11 @@ public class AsientoFuncion {
     @Column(name = "id", nullable = false, length = 36)
     private String id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "funcionId", nullable = false)
     private Funcion funcion;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "asientoId", nullable = false)
     private Asiento asiento;
 
