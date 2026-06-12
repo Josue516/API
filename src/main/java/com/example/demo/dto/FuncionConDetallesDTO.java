@@ -1,5 +1,8 @@
 package com.example.demo.dto;
 
+import java.math.BigDecimal;
+
+import com.example.demo.enums.EstadoFuncion;
 import com.example.demo.models.Pelicula;
 
 import lombok.AllArgsConstructor;
@@ -10,10 +13,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FuncionConDetallesDTO {
+
     private String id;
+
     private Long fechaHora;
-    private double precio;
-    private String estado;
+
+    private BigDecimal precio;
+
+    private EstadoFuncion estado;
+
     private Pelicula pelicula;
+
     private SalaConSedeDTO sala;
 }

@@ -1,9 +1,11 @@
 package com.example.demo.controllers;
 
 import com.example.demo.models.Pelicula;
-import com.example.demo.service.FirestoreService;
+import com.example.demo.repositories.PeliculaRepository;
+import com.example.demo.service.PeliculaService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,40 +15,70 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 
 @RestController
 @RequestMapping("/api/peliculas")
+@RequiredArgsConstructor
 public class PeliculaController {
 
-    @Autowired
-    private FirestoreService service;
-
+    private final PeliculaService peliculaService;
+    private final PeliculaRepository peliculaRepository;
+    
     @PostMapping
-    public String crear(@RequestBody Pelicula p) throws Exception {
-        return service.create("peliculas", p);
-    }
+    public String crear(@RequestBody Pelicula pelicula) {
 
+        return peliculaService.crearPelicula(pelicula);
+    }
+    
     @GetMapping
-    public List<Pelicula> listar() throws Exception {
-        return service.getAll("peliculas", Pelicula.class);
+    public List<Pelicula> listar() {
+        return peliculaRepository.findAll();
     }
+    
     @GetMapping("/{id}")
-    public Pelicula obtenerPorId(@PathVariable String id) throws Exception {
-        return service.getById("peliculas", id, Pelicula.class);
-    }
+    public Pelicula obtenerPorId(@PathVariable String id) {
 
+        return peliculaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Película no encontrada"));
+    }
+    
     @GetMapping("/cartelera")
-    public List<Pelicula> cartelera() throws Exception {
-        return service.getByField("peliculas", "activo", true, Pelicula.class);
+    public List<Pelicula> cartelera() {
+        return peliculaRepository.findByActivoTrue();
     }
-
+    
     @PutMapping("/{id}")
-    public ResponseEntity<Void> editar(@PathVariable String id,
-                                       @RequestBody Pelicula p) throws Exception {
-        service.update("peliculas", id, p);
-        return ResponseEntity.noContent().build(); // 204
-    }
+    public Pelicula editar(
+            @PathVariable String id,
+            @RequestBody Pelicula nueva
+    ) {
 
+        Pelicula pelicula = peliculaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Película no encontrada"));
+
+        pelicula.setTitulo(nueva.getTitulo());
+        pelicula.setSinopsis(nueva.getSinopsis());
+        pelicula.setDuracionMinutos(nueva.getDuracionMinutos());
+        pelicula.setClasificacion(nueva.getClasificacion());
+        pelicula.setGeneros(nueva.getGeneros());
+        pelicula.setImagenUrl(nueva.getImagenUrl());
+        pelicula.setFechaEstreno(nueva.getFechaEstreno());
+
+        return peliculaRepository.save(pelicula);
+    }
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable String id) throws Exception {
-        service.softDelete("peliculas", id, "activo", false);
-        return ResponseEntity.noContent().build();
+    public void eliminar(@PathVariable String id) {
+
+        Pelicula pelicula = peliculaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Película no encontrada"));
+
+        pelicula.setActivo(false);
+
+        peliculaRepository.save(pelicula);
+    }
+    @PatchMapping("/{id}/activo")
+    public ResponseEntity<?> toggleActivo(@PathVariable String id) {
+        Pelicula pelicula = peliculaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Película no encontrada"));
+        pelicula.setActivo(!pelicula.getActivo());
+        peliculaRepository.save(pelicula);
+        return ResponseEntity.ok(pelicula);
     }
 }

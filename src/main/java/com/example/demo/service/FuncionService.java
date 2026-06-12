@@ -1,0 +1,198 @@
+package com.example.demo.service;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import com.example.demo.enums.EstadoFuncion;
+import com.example.demo.enums.EstadoReserva;
+import com.example.demo.models.Asiento;
+import com.example.demo.models.AsientoFuncion;
+import com.example.demo.models.Funcion;
+import com.example.demo.models.Pelicula;
+import com.example.demo.models.Sala;
+import com.example.demo.models.Sede;
+import com.example.demo.repositories.AsientoFuncionRepository;
+import com.example.demo.repositories.AsientoRepository;
+import com.example.demo.repositories.FuncionRepository;
+import com.example.demo.repositories.PeliculaRepository;
+import com.example.demo.repositories.SalaRepository;
+import com.example.demo.repositories.SedeRepository;
+import com.example.demo.dto.CrearFuncionDTO;
+import com.example.demo.dto.FuncionConDetallesDTO;
+import com.example.demo.dto.SalaConSedeDTO;
+//import com.example.demo.repositories.PeliculaRepository;
+//import com.example.demo.repositories.SalaRepository;
+import com.example.demo.enums.EstadoAsiento;
+
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class FuncionService {
+
+    private final FuncionRepository funcionRepository;
+    private final PeliculaRepository peliculaRepository;
+    private final SalaRepository salaRepository;
+    private final AsientoRepository asientoRepository;
+    private final AsientoFuncionRepository asientoFuncionRepository;
+    private final SedeRepository SedeRepository;
+    public List<Funcion> obtenerTodas() {
+        return funcionRepository.findAll();
+    }
+    public Funcion obtenerPorId(String id) {
+
+        return funcionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Función no encontrada"));
+    }
+    public List<Funcion> obtenerActivas() {
+        return funcionRepository.findByEstado(EstadoFuncion.ACTIVA);
+    }
+    
+    @Transactional
+    public String crearFuncion(CrearFuncionDTO dto) {
+
+        Pelicula pelicula = peliculaRepository.findById(dto.getPeliculaId())
+                .orElseThrow(() -> new RuntimeException("Película no encontrada"));
+
+        Sala sala = salaRepository.findById(dto.getSalaId())
+                .orElseThrow(() -> new RuntimeException("Sala no encontrada"));
+
+        boolean exists = funcionRepository.existsBySala_IdAndFechaHora(
+                dto.getSalaId(),
+                dto.getFechaHora()
+        );
+
+        if (exists) {
+            throw new RuntimeException("Ya existe una función en esa sala y horario");
+        }
+
+        Funcion funcion = Funcion.builder()
+                .id(UUID.randomUUID().toString())
+                .pelicula(pelicula)
+                .sala(sala)
+                .fechaHora(dto.getFechaHora())
+                .precio(dto.getPrecio())
+                .estado(EstadoFuncion.ACTIVA)
+                .build();
+
+        Funcion savedFuncion = funcionRepository.save(funcion);
+
+        List<Asiento> asientos = asientoRepository.findBySalaId(sala.getId());
+
+        List<AsientoFuncion> asientosFuncion = asientos.stream()
+                .map(asiento -> AsientoFuncion.builder()
+                        .id(UUID.randomUUID().toString())
+                        .funcion(savedFuncion)
+                        .asiento(asiento)
+                        .estado(EstadoAsiento.DISPONIBLE)
+                        .reservadoHasta(null)
+                        .reserva(null)
+                        .build()
+                )
+                .toList();
+
+        asientoFuncionRepository.saveAll(asientosFuncion);
+
+        return savedFuncion.getId();
+    }
+    public Funcion actualizar(String id, Funcion nueva) {
+
+        Funcion funcion = obtenerPorId(id);
+
+        // ❌ NO permitir cambiar sala si ya existen reservas
+        if (!funcion.getSala().getId().equals(nueva.getSala().getId())) {
+
+            boolean tieneReservas = asientoFuncionRepository
+                    .findByFuncion_Id(id)
+                    .stream()
+                    .anyMatch(af -> af.getReserva() != null);
+
+            if (tieneReservas) {
+                throw new RuntimeException("No se puede cambiar la sala, ya hay reservas");
+            }
+        }
+
+        funcion.setFechaHora(nueva.getFechaHora());
+        funcion.setPrecio(nueva.getPrecio());
+        funcion.setEstado(nueva.getEstado());
+
+        return funcionRepository.save(funcion);
+    }
+    public Funcion obtenerFuncion(String id) {
+
+        return funcionRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Función no encontrada"));
+    }
+    public List<Funcion> obtenerFuncionesActivas() {
+        return funcionRepository.findByEstado(EstadoFuncion.ACTIVA);
+    }
+    public List<Funcion> obtenerPorPelicula(String peliculaId) {
+        return funcionRepository.findByPelicula_Id(peliculaId);
+    }
+    @Transactional
+    public void cancelarFuncion(String id) {
+
+        Funcion funcion = obtenerFuncion(id);
+
+        funcion.setEstado(EstadoFuncion.CANCELADA);
+        funcionRepository.save(funcion);
+
+        List<AsientoFuncion> asientos =
+                asientoFuncionRepository.findByFuncion_Id(id);
+
+        for (AsientoFuncion af : asientos) {
+
+            // liberar asiento
+            af.setEstado(EstadoAsiento.DISPONIBLE);
+            af.setReservadoHasta(null);
+
+            // manejar reserva si existe
+            if (af.getReserva() != null) {
+                af.getReserva().setEstado(EstadoReserva.CANCELADA);
+            }
+
+            af.setReserva(null);
+        }
+
+        asientoFuncionRepository.saveAll(asientos);
+    }
+    public List<FuncionConDetallesDTO> obtenerConDetalles() {
+
+        List<Funcion> funciones = funcionRepository.findAll();
+
+        return funciones.stream().map(f -> {
+
+            Pelicula pelicula = peliculaRepository.findById(f.getPelicula().getId())
+                    .orElseThrow();
+
+            Sala sala = salaRepository.findById(f.getSala().getId())
+                    .orElseThrow();
+
+            Sede sede = SedeRepository.findById(sala.getSede().getId())
+                    .orElseThrow();
+
+            SalaConSedeDTO salaDto = new SalaConSedeDTO();
+            salaDto.setId(sala.getId());
+            salaDto.setNombre(sala.getNombre());
+            salaDto.setCapacidad(sala.getCapacidad());
+            salaDto.setTipoSala(sala.getTipoSala());
+            salaDto.setActivo(sala.getActivo());
+            salaDto.setSede(sede);
+
+            FuncionConDetallesDTO dto = new FuncionConDetallesDTO();
+            dto.setId(f.getId());
+            dto.setFechaHora(f.getFechaHora());
+            dto.setPrecio(f.getPrecio());
+            dto.setEstado(f.getEstado());
+            dto.setPelicula(pelicula);
+            dto.setSala(salaDto);
+
+            return dto;
+
+        }).toList();
+    }
+}

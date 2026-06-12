@@ -1,11 +1,7 @@
 package com.example.demo.controllers;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,64 +11,83 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.dto.SalaConSedeDTO;
 import com.example.demo.dto.SedeConSalasDTO;
 import com.example.demo.models.Sala;
 import com.example.demo.models.Sede;
-import com.example.demo.service.FirestoreService;
+import com.example.demo.repositories.SalaRepository;
+import com.example.demo.repositories.SedeRepository;
+import com.example.demo.service.SedeService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/sedes")
+@RequiredArgsConstructor
 public class SedeController {
 
-    @Autowired
-    private FirestoreService service;
-
+    private final SedeRepository sedeRepository;
+    private final SalaRepository salaRepository;
+    private final SedeService sedeService;
+    
     @PostMapping
-    public ResponseEntity<Map<String, String>> crear(@RequestBody Sede s) throws Exception {
-        String id = service.create("sedes", s);
-        return ResponseEntity.ok(Map.of("id", id));
-    }
+    public Map<String, String> crear(@RequestBody Sede sede) {
 
+        String id = sedeService.crearSede(sede);
+
+        return Map.of("id", id);
+    }
+    
     @GetMapping
-    public List<Sede> listar() throws Exception {
-        return service.getAll("sedes", Sede.class);
+    public List<Sede> listar() {
+        return sedeRepository.findAll();
     }
-
+    
     @GetMapping("/{id}")
-    public Sede obtenerPorId(@PathVariable String id) throws Exception {
-        return service.getById("sedes", id, Sede.class);
-    }
+    public Sede obtenerPorId(@PathVariable String id) {
 
+        return sedeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Sede no encontrada"));
+    }
+    
     @GetMapping("/activas")
-    public List<Sede> activas() throws Exception {
-        return service.getByField(
-                "sedes",
-                "activo",
-                true,
-                Sede.class);
+    public List<Sede> activas() {
+        return sedeRepository.findByActivoTrue();
     }
-
     @PutMapping("/{id}")
-    public ResponseEntity<Void> editar(
+    public Sede editar(
             @PathVariable String id,
-            @RequestBody Map<String, Object> data) throws Exception {
-        service.update("sedes", id, data);
-        return ResponseEntity.noContent().build();
-    }
+            @RequestBody Sede nueva
+    ) {
 
+        Sede sede = sedeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Sede no encontrada"));
+
+        sede.setNombre(nueva.getNombre());
+        sede.setDireccion(nueva.getDireccion());
+        sede.setCiudad(nueva.getCiudad());
+        sede.setTelefono(nueva.getTelefono());
+
+        return sedeRepository.save(sede);
+    }
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable String id) throws Exception {
-        service.softDelete("sedes", id, "activo", false);
-        return ResponseEntity.noContent().build();
+    public void eliminar(@PathVariable String id) {
+
+        Sede sede = sedeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Sede no encontrada"));
+
+        sede.setActivo(false);
+
+        sedeRepository.save(sede);
     }
     @GetMapping("/con-salas")
-    public List<SedeConSalasDTO> listarConSalas() throws Exception {
-        List<Sede> sedes = service.getAll("sedes", Sede.class);
+    public List<SedeConSalasDTO> listarConSalas() {
 
-        List<SedeConSalasDTO> resultado = new ArrayList<>();
+        List<Sede> sedes = sedeRepository.findAll();
 
-        for (Sede sede : sedes) {
-            List<Sala> salas = service.getByField("salas", "sedeId", sede.getId(), Sala.class);
+        return sedes.stream().map(sede -> {
+
+            List<Sala> salas = salaRepository.findBySede_Id(sede.getId());
 
             SedeConSalasDTO dto = new SedeConSalasDTO();
             dto.setId(sede.getId());
@@ -81,11 +96,23 @@ public class SedeController {
             dto.setCiudad(sede.getCiudad());
             dto.setTelefono(sede.getTelefono());
             dto.setActivo(sede.getActivo());
-            dto.setSalas(salas);
+            List<SalaConSedeDTO> salasDTO = salas.stream()
+                    .map(sala -> {
+                        SalaConSedeDTO s = new SalaConSedeDTO();
+                        s.setId(sala.getId());
+                        s.setNombre(sala.getNombre());
+                        s.setCapacidad(sala.getCapacidad());
+                        s.setTipoSala(sala.getTipoSala());
+                        s.setActivo(sala.getActivo());
+                        s.setSede(dto.getId() != null ? null : null);
+                        return s;
+                    })
+                    .toList();
 
-            resultado.add(dto);
-        }
+            dto.setSalas(salasDTO);
 
-        return resultado;
+            return dto;
+
+        }).toList();
     }
 }

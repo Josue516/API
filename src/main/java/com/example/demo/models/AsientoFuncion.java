@@ -1,8 +1,6 @@
 package com.example.demo.models;
 
-import java.math.BigDecimal;
-
-import com.example.demo.enums.EstadoFuncion;
+import com.example.demo.enums.EstadoAsiento;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,38 +11,47 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "funciones")
+@Table(
+    name = "asientosFuncion",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            columnNames = {"funcionId", "asientoId"}
+        )
+    }
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Funcion {
+public class AsientoFuncion {
 
     @Id
     @Column(name = "id", nullable = false, length = 36)
     private String id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "peliculaId", nullable = false)
-    private Pelicula pelicula;
+    @JoinColumn(name = "funcionId", nullable = false)
+    private Funcion funcion;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "salaId", nullable = false)
-    private Sala sala;
-
-    @Column(name = "fechaHora", nullable = false)
-    private Long fechaHora;
-
-    @Column(name = "precio", nullable = false, precision = 10, scale = 2)
-    private BigDecimal precio;
+    @JoinColumn(name = "asientoId", nullable = false)
+    private Asiento asiento;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false)
-    private EstadoFuncion estado;
+    private EstadoAsiento estado;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reservaId")
+    private Reserva reserva;
+
+    @Column(name = "reservadoHasta")
+    private Long reservadoHasta;
 }

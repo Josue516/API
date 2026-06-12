@@ -1,5 +1,8 @@
 package com.example.demo.dto;
 
+import java.math.BigDecimal;
+
+import com.example.demo.enums.EstadoReserva;
 import com.example.demo.models.Pago;
 import com.example.demo.models.Usuario;
 
@@ -11,12 +14,20 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReservaDetalleDTO {
+
     private String id;
+
     private Usuario usuario;
+
     private FuncionConDetallesDTO funcion;
-    private int cantidadBoletos;
-    private double total;
-    private String estado;
+
+    private Integer cantidadBoletos;
+
+    private BigDecimal total;
+
+    private EstadoReserva estado;
+
     private Long createdAt;
+
     private Pago pago;
 }
