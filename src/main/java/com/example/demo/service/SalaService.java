@@ -7,10 +7,12 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.dto.CrearSalaDTO;
+import com.example.demo.enums.EstadoFuncion;
 import com.example.demo.models.Asiento;
 import com.example.demo.models.Sala;
 import com.example.demo.models.Sede;
 import com.example.demo.repositories.AsientoRepository;
+import com.example.demo.repositories.FuncionRepository;
 import com.example.demo.repositories.SalaRepository;
 import com.example.demo.repositories.SedeRepository;
 
@@ -23,6 +25,8 @@ public class SalaService {
     private final SalaRepository salaRepository;
     private final AsientoRepository asientoRepository;
     private final SedeRepository sedeRepository;
+    private final FuncionRepository funcionRepository;
+    
     
     public String crearSala(CrearSalaDTO dto) {
         Sede sede = sedeRepository.findById(dto.getSedeId())
@@ -88,11 +92,16 @@ public class SalaService {
         return salaRepository.save(sala);
     }
     public void desactivar(String id) {
-
         Sala sala = obtenerPorId(id);
 
-        sala.setActivo(false);
+        boolean tieneFuncionesActivas = funcionRepository
+                .existsBySala_IdAndEstado(id, EstadoFuncion.ACTIVA);
 
+        if (tieneFuncionesActivas) {
+            throw new RuntimeException("No se puede desactivar la sala porque tiene funciones activas");
+        }
+
+        sala.setActivo(false);
         salaRepository.save(sala);
     }
 }

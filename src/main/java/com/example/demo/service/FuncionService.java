@@ -11,6 +11,7 @@ import com.example.demo.models.Asiento;
 import com.example.demo.models.AsientoFuncion;
 import com.example.demo.models.Funcion;
 import com.example.demo.models.Pelicula;
+import com.example.demo.models.Reserva;
 import com.example.demo.models.Sala;
 import com.example.demo.models.Sede;
 import com.example.demo.repositories.AsientoFuncionRepository;
@@ -39,9 +40,11 @@ public class FuncionService {
     private final AsientoRepository asientoRepository;
     private final AsientoFuncionRepository asientoFuncionRepository;
     private final SedeRepository SedeRepository;
+    
     public List<Funcion> obtenerTodas() {
         return funcionRepository.findAll();
     }
+    
     public Funcion obtenerPorId(String id) {
 
         return funcionRepository.findById(id)
@@ -56,17 +59,22 @@ public class FuncionService {
 
         Pelicula pelicula = peliculaRepository.findById(dto.getPeliculaId())
                 .orElseThrow(() -> new RuntimeException("Película no encontrada"));
-
+        if (!pelicula.getActivo()) {
+            throw new RuntimeException("No se puede crear una función con una película inactiva");
+        }
         Sala sala = salaRepository.findById(dto.getSalaId())
                 .orElseThrow(() -> new RuntimeException("Sala no encontrada"));
-
-        boolean exists = funcionRepository.existsBySala_IdAndFechaHora(
+        if (!sala.getActivo()) {
+            throw new RuntimeException("No se puede crear una función en una sala inactiva");
+        }
+        boolean solapamiento = funcionRepository.existeSolapamiento(
                 dto.getSalaId(),
-                dto.getFechaHora()
+                dto.getFechaHora(),
+                pelicula.getDuracionMinutos()
         );
 
-        if (exists) {
-            throw new RuntimeException("Ya existe una función en esa sala y horario");
+        if (solapamiento) {
+            throw new RuntimeException("Ya existe una función en esa sala que se solapa con el horario indicado");
         }
 
         Funcion funcion = Funcion.builder()
@@ -145,17 +153,18 @@ public class FuncionService {
                 asientoFuncionRepository.findByFuncion_Id(id);
 
         for (AsientoFuncion af : asientos) {
-
-            // liberar asiento
             af.setEstado(EstadoAsiento.DISPONIBLE);
             af.setReservadoHasta(null);
 
-            // manejar reserva si existe
             if (af.getReserva() != null) {
-                af.getReserva().setEstado(EstadoReserva.CANCELADA);
+                Reserva reserva = af.getReserva();
+                if (reserva.getEstado() == EstadoReserva.PAGADA) {
+                    reserva.setEstado(EstadoReserva.REEMBOLSADA); // marcamos como reembolsada
+                } else {
+                    reserva.setEstado(EstadoReserva.CANCELADA); // las pendientes se cancelan
+                }
+                af.setReserva(null);
             }
-
-            af.setReserva(null);
         }
 
         asientoFuncionRepository.saveAll(asientos);

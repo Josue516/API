@@ -11,4 +11,5 @@ import com.example.demo.models.Sala;
 public interface SalaRepository extends JpaRepository<Sala, String> {
 	List<Sala> findBySede_Id(String sedeId);
 	List<Sala> findByActivoTrue();
+	boolean existsBySede_IdAndActivoTrue(String sedeId);
 }

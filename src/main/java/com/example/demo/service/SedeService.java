@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.models.Sede;
+import com.example.demo.repositories.SalaRepository;
 import com.example.demo.repositories.SedeRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 public class SedeService {
 
     private final SedeRepository sedeRepository;
+    private final SalaRepository salaRepository;
     public String crearSede(Sede sede) {
 
         sede.setId(UUID.randomUUID().toString());
@@ -51,12 +53,16 @@ public class SedeService {
         return sedeRepository.save(sede);
     }
     public void desactivar(String id) {
-
         Sede sede = obtenerPorId(id);
 
-        sede.setActivo(false);
+        boolean tieneSalasActivas = salaRepository
+                .existsBySede_IdAndActivoTrue(id);
 
+        if (tieneSalasActivas) {
+            throw new RuntimeException("No se puede desactivar la sede porque tiene salas activas");
+        }
+
+        sede.setActivo(false);
         sedeRepository.save(sede);
     }
-    
 }
