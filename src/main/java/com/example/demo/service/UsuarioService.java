@@ -6,20 +6,24 @@ import com.example.demo.enums.RolUsuario;
 import com.example.demo.models.Usuario;
 import com.example.demo.repositories.UsuarioRepository;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.UserRecord;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class UsuarioService {
 
+    private static final Logger log = LoggerFactory.getLogger(UsuarioService.class);
+
     private final UsuarioRepository usuarioRepository;
 
     public String crearUsuario(
             String email,
             String password,
-            Usuario usuario) throws Exception {
+            Usuario usuario) {
 
         String uid = null;
 
@@ -31,8 +35,7 @@ public class UsuarioService {
                             .setPassword(password);
 
             UserRecord userRecord =
-                    FirebaseAuth.getInstance()
-                            .createUser(request);
+                    FirebaseAuth.getInstance().createUser(request);
 
             uid = userRecord.getUid();
 
@@ -48,19 +51,19 @@ public class UsuarioService {
 
             return uid;
 
-        } catch (Exception e) {
+        } catch (FirebaseAuthException e) {
+            throw new RuntimeException("Error al crear usuario en Firebase: " + e.getMessage());
 
-            // Si Firebase creó el usuario pero MySQL falló,
-            // eliminamos el usuario de Firebase para mantener consistencia.
+        } catch (Exception e) {
+            // El usuario sí se creó en Firebase pero falló en MySQL
             if (uid != null) {
                 try {
                     FirebaseAuth.getInstance().deleteUser(uid);
                 } catch (Exception deleteException) {
-                    // Opcional: registrar en logs
+                    log.error("No se pudo revertir el usuario {} en Firebase tras fallo en MySQL", uid, deleteException);
                 }
             }
-
-            throw e;
+            throw new RuntimeException("Error al guardar usuario en la base de datos: " + e.getMessage());
         }
     }
 }

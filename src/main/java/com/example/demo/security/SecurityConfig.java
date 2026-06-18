@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -19,10 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
     @Autowired
     private FirebaseAuthFilter firebaseAuthFilter;
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -31,8 +30,19 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**",
-                "/api/health").permitAll()
+                .requestMatchers("/api/auth/**", "/api/health").permitAll()
+                // Endpoints públicos para clientes (solo datos activos)
+                .requestMatchers(HttpMethod.GET, "/api/peliculas/cartelera").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/salas/activas").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/funciones/activas").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/sedes/activas").permitAll()
+                // Todo lo demás requiere ADMIN
+                .requestMatchers("/api/peliculas/**").hasRole("ADMIN")
+                .requestMatchers("/api/salas/**").hasRole("ADMIN")
+                .requestMatchers("/api/sedes/**").hasRole("ADMIN")
+                .requestMatchers("/api/funciones/**").hasRole("ADMIN")
+                .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
+
                 .anyRequest().authenticated()
             )
             .addFilterBefore(firebaseAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -56,7 +66,6 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
-
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> {
