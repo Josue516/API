@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -73,5 +74,32 @@ public class AuthController {
                 "uid", uid,
                 "message", "Usuario registrado correctamente"
         ));
+    }
+    @PutMapping("/me")
+    public ResponseEntity<?> actualizarMiPerfil(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody Map<String, Object> data) {
+        try {
+            String token = authHeader.substring(7);
+            FirebaseToken decoded = FirebaseAuth.getInstance().verifyIdToken(token);
+            String uid = decoded.getUid();
+
+            Usuario usuario = usuarioRepository.findById(uid)
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+            if (data.containsKey("nombres"))
+                usuario.setNombres((String) data.get("nombres"));
+
+            if (data.containsKey("apellidos"))
+                usuario.setApellidos((String) data.get("apellidos"));
+
+            if (data.containsKey("telefono"))
+                usuario.setTelefono((String) data.get("telefono"));
+
+            return ResponseEntity.ok(usuarioRepository.save(usuario));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Token inválido");
+        }
     }
 }
