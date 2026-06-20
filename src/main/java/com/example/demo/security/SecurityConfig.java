@@ -72,4 +72,5 @@ public class SecurityConfig {
             throw new UsernameNotFoundException("Use Firebase Auth");
         };
     }
+    
 }
