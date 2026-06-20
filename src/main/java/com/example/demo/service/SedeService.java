@@ -65,4 +65,19 @@ public class SedeService {
         sede.setActivo(false);
         sedeRepository.save(sede);
     }
+    public Sede toggleActivo(String id) {
+        Sede sede = obtenerPorId(id);
+
+        if (sede.getActivo()) {
+            boolean tieneSalasActivas = salaRepository
+                    .existsBySede_IdAndActivoTrue(id);
+
+            if (tieneSalasActivas) {
+                throw new RuntimeException("No se puede desactivar la sede porque tiene salas activas");
+            }
+        }
+
+        sede.setActivo(!sede.getActivo());
+        return sedeRepository.save(sede);
+    }
 }
