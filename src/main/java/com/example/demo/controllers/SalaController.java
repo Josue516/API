@@ -69,10 +69,7 @@ public class SalaController {
     }
     @PatchMapping("/{id}/activo")
     public ResponseEntity<?> toggleActivo(@PathVariable String id) {
-        Sala sala = salaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Sala no encontrada"));
-        sala.setActivo(!sala.getActivo());
-        salaRepository.save(sala);
+        Sala sala = salaService.toggleActivo(id);
         return ResponseEntity.ok(sala);
     }
 }

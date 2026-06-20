@@ -104,4 +104,20 @@ public class SalaService {
         sala.setActivo(false);
         salaRepository.save(sala);
     }
+    public Sala toggleActivo(String id) {
+        Sala sala = obtenerPorId(id);
+
+        if (sala.getActivo()) {
+            // Se está desactivando - validar
+            boolean tieneFuncionesActivas = funcionRepository
+                    .existsBySala_IdAndEstado(id, EstadoFuncion.ACTIVA);
+
+            if (tieneFuncionesActivas) {
+                throw new RuntimeException("No se puede desactivar la sala porque tiene funciones activas");
+            }
+        }
+
+        sala.setActivo(!sala.getActivo());
+        return salaRepository.save(sala);
+    }
 }
