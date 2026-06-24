@@ -67,19 +67,13 @@ public class SalaService {
 
         asientoRepository.saveAll(asientos);
     }
-    
-    public List<Sala> obtenerSalas() {
-        return salaRepository.findAll();
-    }
-    
+
     public Sala obtenerPorId(String id) {
 
         return salaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sala no encontrada"));
     }
-    public List<Sala> obtenerPorSede(String sedeId) {
-        return salaRepository.findBySede_Id(sedeId);
-    }
+
     public Sala actualizar(String id, Sala nueva) {
 
         Sala sala = obtenerPorId(id);

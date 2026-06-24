@@ -30,19 +30,10 @@ public class ReservaController {
         return reservaService.obtenerTodas();
     }
     @PostMapping
-    public ResponseEntity<Map<String, String>> crear(
-            @RequestBody CrearReservaDTO dto
-    ) {
-        String usuarioId = (String) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
-
-        String id = reservaService.crearReserva(
-                usuarioId,
-                dto.getFuncionId(),
-                dto.getAsientoIds()
-        );
-
+    public ResponseEntity<?> crear(@RequestBody CrearReservaDTO dto) {
+        String uid = (String) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        String id = reservaService.crearReserva(uid, dto.getFuncionId(), dto.getAsientoIds());
         return ResponseEntity.ok(Map.of("id", id));
     }
     @PutMapping("/{id}")
@@ -62,5 +53,20 @@ public class ReservaController {
     @GetMapping("/con-detalles")
     public List<ReservaDetalleDTO> conDetalles() {
         return reservaService.obtenerConDetalles();
+    }
+    @GetMapping("/mis-reservas")
+    public List<Reserva> misReservas() {
+        String uid = (String) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        return reservaService.obtenerPorUsuario(uid);
+    }
+    @PostMapping("/{id}/confirmar")
+    public ResponseEntity<?> confirmarPago(
+            @PathVariable String id,
+            @RequestBody Map<String, String> body) {
+        String paypalOrderId = body.get("paypalOrderId");
+        String captureId = body.get("captureId");
+        reservaService.confirmarPago(id, paypalOrderId, captureId);
+        return ResponseEntity.ok(Map.of("mensaje", "Pago confirmado"));
     }
 }

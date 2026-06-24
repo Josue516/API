@@ -26,11 +26,7 @@ public class SedeService {
 
         return sede.getId();
     }
-    
-    public List<Sede> obtenerSedes() {
-        return sedeRepository.findAll();
-    }
-    
+
     public Sede obtenerPorId(String id) {
 
         return sedeRepository.findById(id)

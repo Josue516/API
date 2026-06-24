@@ -63,22 +63,14 @@ public class PeliculaController {
 
         return peliculaRepository.save(pelicula);
     }
+    // Controller
     @DeleteMapping("/{id}")
     public void eliminar(@PathVariable String id) {
-
-        Pelicula pelicula = peliculaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Película no encontrada"));
-
-        pelicula.setActivo(false);
-
-        peliculaRepository.save(pelicula);
+        peliculaService.desactivarPelicula(id);
     }
+
     @PatchMapping("/{id}/activo")
     public ResponseEntity<?> toggleActivo(@PathVariable String id) {
-        Pelicula pelicula = peliculaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Película no encontrada"));
-        pelicula.setActivo(!pelicula.getActivo());
-        peliculaRepository.save(pelicula);
-        return ResponseEntity.ok(pelicula);
+        return ResponseEntity.ok(peliculaService.toggleActivo(id));
     }
 }

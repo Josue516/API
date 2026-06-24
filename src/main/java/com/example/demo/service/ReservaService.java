@@ -264,4 +264,7 @@ public class ReservaService {
 
         return resultado;
     }
+    public List<Reserva> obtenerPorUsuario(String usuarioId) {
+        return reservaRepository.findByUsuario_Id(usuarioId);
+    }
 }

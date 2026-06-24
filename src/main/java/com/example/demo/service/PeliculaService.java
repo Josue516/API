@@ -1,6 +1,5 @@
 package com.example.demo.service;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -29,10 +28,6 @@ public class PeliculaService {
         return pelicula.getId();
     }
 
-    public List<Pelicula> obtenerPeliculas() {
-        return peliculaRepository.findAll();
-    }
-
     public Pelicula obtenerPeliculaPorId(String id) {
 
         return peliculaRepository.findById(id)
@@ -48,7 +43,9 @@ public class PeliculaService {
 
         peliculaRepository.save(pelicula);
     }
-    public List<Pelicula> obtenerPeliculasActivas() {
-        return peliculaRepository.findByActivoTrue();
+    public Pelicula toggleActivo(String id) {
+        Pelicula pelicula = obtenerPeliculaPorId(id);
+        pelicula.setActivo(!pelicula.getActivo());
+        return peliculaRepository.save(pelicula);
     }
 }
