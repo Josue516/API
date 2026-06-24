@@ -106,13 +106,19 @@ public class FuncionService {
 
         return savedFuncion.getId();
     }
-    public Funcion actualizar(String id, Funcion nueva) {
+    public Funcion actualizar(String id, CrearFuncionDTO dto) {
 
         Funcion funcion = obtenerPorId(id);
 
-        // ❌ NO permitir cambiar sala si ya existen reservas
-        if (!funcion.getSala().getId().equals(nueva.getSala().getId())) {
+        // Cambio de película
+        if (!funcion.getPelicula().getId().equals(dto.getPeliculaId())) {
+            Pelicula pelicula = peliculaRepository.findById(dto.getPeliculaId())
+                    .orElseThrow(() -> new RuntimeException("Película no encontrada"));
+            funcion.setPelicula(pelicula);
+        }
 
+        // Cambio de sala — validar reservas
+        if (!funcion.getSala().getId().equals(dto.getSalaId())) {
             boolean tieneReservas = asientoFuncionRepository
                     .findByFuncion_Id(id)
                     .stream()
@@ -121,11 +127,15 @@ public class FuncionService {
             if (tieneReservas) {
                 throw new RuntimeException("No se puede cambiar la sala, ya hay reservas");
             }
+
+            Sala sala = salaRepository.findById(dto.getSalaId())
+                    .orElseThrow(() -> new RuntimeException("Sala no encontrada"));
+            funcion.setSala(sala);
         }
 
-        funcion.setFechaHora(nueva.getFechaHora());
-        funcion.setPrecio(nueva.getPrecio());
-        funcion.setEstado(nueva.getEstado());
+        funcion.setFechaHora(dto.getFechaHora());
+        funcion.setPrecio(dto.getPrecio());
+        funcion.setEstado(dto.getEstado());
 
         return funcionRepository.save(funcion);
     }

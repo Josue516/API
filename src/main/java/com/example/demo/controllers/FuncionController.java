@@ -47,9 +47,9 @@ public class FuncionController {
     @PutMapping("/{id}")
     public Funcion actualizar(
             @PathVariable String id,
-            @RequestBody Funcion funcion
+            @RequestBody CrearFuncionDTO dto
     ) {
-        return funcionService.actualizar(id, funcion);
+        return funcionService.actualizar(id, dto);
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable String id) {
