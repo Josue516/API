@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.example.demo.models.Asiento;
+import com.example.demo.models.AsientoFuncion;
 
 @Repository
 public interface AsientoRepository extends JpaRepository<Asiento, String> {
 	List<Asiento> findBySalaId(String salaId);
+	List<AsientoFuncion > findByFuncion_Id(String funcionId);
 }

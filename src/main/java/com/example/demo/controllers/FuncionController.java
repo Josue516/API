@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.dto.AsientoFuncionDTO;
 import com.example.demo.dto.CrearFuncionDTO;
 import com.example.demo.dto.FuncionConDetallesDTO;
 import com.example.demo.models.Funcion;
@@ -61,5 +62,9 @@ public class FuncionController {
     @GetMapping("/con-detalles")
     public List<FuncionConDetallesDTO> conDetalles() {
         return funcionService.obtenerConDetalles();
+    }
+    @GetMapping("/{id}/asientos")
+    public List<AsientoFuncionDTO> asientos(@PathVariable String id) {
+        return funcionService.obtenerAsientosPorFuncion(id);
     }
 }

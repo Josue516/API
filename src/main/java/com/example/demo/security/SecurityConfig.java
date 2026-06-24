@@ -30,21 +30,23 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/api/health").permitAll()
-                // Endpoints públicos para clientes (solo datos activos)
-                .requestMatchers(HttpMethod.GET, "/api/peliculas/cartelera").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/salas/activas").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/funciones/activas").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/sedes/activas").permitAll()
-                // Todo lo demás requiere ADMIN
-                .requestMatchers("/api/peliculas/**").hasRole("ADMIN")
-                .requestMatchers("/api/salas/**").hasRole("ADMIN")
-                .requestMatchers("/api/sedes/**").hasRole("ADMIN")
-                .requestMatchers("/api/funciones/**").hasRole("ADMIN")
-                .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
+            	    .requestMatchers("/api/auth/**", "/api/health").permitAll()
+            	    // Endpoints públicos para clientes (solo datos activos)
+            	    .requestMatchers(HttpMethod.GET, "/api/peliculas/cartelera").permitAll()
+            	    .requestMatchers(HttpMethod.GET, "/api/salas/activas").permitAll()
+            	    .requestMatchers(HttpMethod.GET, "/api/funciones/activas").permitAll()
+            	    .requestMatchers(HttpMethod.GET, "/api/sedes/activas").permitAll()
+            	    .requestMatchers(HttpMethod.GET, "/api/funciones/*/asientos").permitAll() 
+            	    .requestMatchers(HttpMethod.GET, "/api/funciones/*").permitAll()          
+            	    // Todo lo demás requiere ADMIN
+            	    .requestMatchers("/api/peliculas/**").hasRole("ADMIN")
+            	    .requestMatchers("/api/salas/**").hasRole("ADMIN")
+            	    .requestMatchers("/api/sedes/**").hasRole("ADMIN")
+            	    .requestMatchers("/api/funciones/**").hasRole("ADMIN")
+            	    .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
 
-                .anyRequest().authenticated()
-            )
+            	    .anyRequest().authenticated()
+            	)
             .addFilterBefore(firebaseAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

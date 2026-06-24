@@ -20,6 +20,7 @@ import com.example.demo.repositories.FuncionRepository;
 import com.example.demo.repositories.PeliculaRepository;
 import com.example.demo.repositories.SalaRepository;
 import com.example.demo.repositories.SedeRepository;
+import com.example.demo.dto.AsientoFuncionDTO;
 import com.example.demo.dto.CrearFuncionDTO;
 import com.example.demo.dto.FuncionConDetallesDTO;
 import com.example.demo.dto.SalaConSedeDTO;
@@ -213,5 +214,18 @@ public class FuncionService {
             return dto;
 
         }).toList();
+    }
+    public List<AsientoFuncionDTO> obtenerAsientosPorFuncion(String funcionId) {
+        return asientoFuncionRepository.findByFuncion_Id(funcionId)
+                .stream()
+                .map(af -> new AsientoFuncionDTO(
+                        af.getId(),
+                        af.getAsiento().getId(),
+                        af.getAsiento().getFila(),
+                        af.getAsiento().getNumero(),
+                        af.getEstado(),
+                        af.getReservadoHasta()
+                ))
+                .toList();
     }
 }
