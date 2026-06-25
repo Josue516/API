@@ -58,6 +58,8 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
                 return;
             }
         }
+        System.out.println("Request URI: " + request.getRequestURI());
+        System.out.println("Method: " + request.getMethod());
         filterChain.doFilter(request, response);
     }
 }

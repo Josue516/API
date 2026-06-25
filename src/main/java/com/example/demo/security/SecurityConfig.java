@@ -33,25 +33,25 @@ public class SecurityConfig {
             	    .requestMatchers("/api/auth/**", "/api/health").permitAll()
             	    .requestMatchers(HttpMethod.POST, "/api/pagos/crear").authenticated()
             	    .requestMatchers(HttpMethod.POST, "/api/pagos/confirmar").authenticated()
-            	    // Endpoints públicos para clientes (solo datos activos)
+            	    // Endpoints públicos para clientes
             	    .requestMatchers(HttpMethod.GET, "/api/peliculas/cartelera").permitAll()
             	    .requestMatchers(HttpMethod.GET, "/api/salas/activas").permitAll()
             	    .requestMatchers(HttpMethod.GET, "/api/funciones/activas").permitAll()
             	    .requestMatchers(HttpMethod.GET, "/api/sedes/activas").permitAll()
-            	    .requestMatchers(HttpMethod.GET, "/api/funciones/*/asientos").permitAll() 
-            	    .requestMatchers(HttpMethod.GET, "/api/funciones/*").permitAll()   
+            	    .requestMatchers(HttpMethod.GET, "/api/funciones/*/asientos").permitAll()
+            	    .requestMatchers(HttpMethod.GET, "/api/funciones/*").permitAll()
+            	    // Endpoints de clientes autenticados — DEBEN IR ANTES de hasRole("ADMIN")
             	    .requestMatchers("/api/reservas/mis-reservas").authenticated()
             	    .requestMatchers(HttpMethod.POST, "/api/reservas").authenticated()
             	    .requestMatchers(HttpMethod.POST, "/api/reservas/*/confirmar").authenticated()
             	    .requestMatchers(HttpMethod.DELETE, "/api/reservas/*").authenticated()
             	    // Todo lo demás requiere ADMIN
-            	    .requestMatchers("/api/reservas/**").hasRole("ADMIN")
             	    .requestMatchers("/api/peliculas/**").hasRole("ADMIN")
             	    .requestMatchers("/api/salas/**").hasRole("ADMIN")
             	    .requestMatchers("/api/sedes/**").hasRole("ADMIN")
             	    .requestMatchers("/api/funciones/**").hasRole("ADMIN")
             	    .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
-
+            	    .requestMatchers("/api/reservas/**").hasRole("ADMIN") // ⬅️ movido al final
             	    .anyRequest().authenticated()
             	)
             .addFilterBefore(firebaseAuthFilter, UsernamePasswordAuthenticationFilter.class);
