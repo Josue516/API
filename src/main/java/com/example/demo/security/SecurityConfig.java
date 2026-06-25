@@ -20,8 +20,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
     @Autowired
     private FirebaseAuthFilter firebaseAuthFilter;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -30,31 +32,40 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-            	    .requestMatchers("/api/auth/**", "/api/health").permitAll()
-            	    .requestMatchers(HttpMethod.POST, "/api/pagos/crear").authenticated()
-            	    .requestMatchers(HttpMethod.POST, "/api/pagos/confirmar").authenticated()
-            	    // Endpoints públicos para clientes
-            	    .requestMatchers(HttpMethod.GET, "/api/peliculas/cartelera").permitAll()
-            	    .requestMatchers(HttpMethod.GET, "/api/salas/activas").permitAll()
-            	    .requestMatchers(HttpMethod.GET, "/api/funciones/activas").permitAll()
-            	    .requestMatchers(HttpMethod.GET, "/api/sedes/activas").permitAll()
-            	    .requestMatchers(HttpMethod.GET, "/api/funciones/*/asientos").permitAll()
-            	    .requestMatchers(HttpMethod.GET, "/api/funciones/*").permitAll()
-            	    .requestMatchers(HttpMethod.PUT, "/api/reservas/*/estado").hasRole("ADMIN")
-            	    // Endpoints de clientes autenticados — DEBEN IR ANTES de hasRole("ADMIN")
-            	    .requestMatchers("/api/reservas/mis-reservas").authenticated()
-            	    .requestMatchers(HttpMethod.POST, "/api/reservas").authenticated()
-            	    .requestMatchers(HttpMethod.POST, "/api/reservas/*/confirmar").authenticated()
-            	    .requestMatchers(HttpMethod.DELETE, "/api/reservas/*").authenticated()
-            	    // Todo lo demás requiere ADMIN
-            	    .requestMatchers("/api/peliculas/**").hasRole("ADMIN")
-            	    .requestMatchers("/api/salas/**").hasRole("ADMIN")
-            	    .requestMatchers("/api/sedes/**").hasRole("ADMIN")
-            	    .requestMatchers("/api/funciones/**").hasRole("ADMIN")
-            	    .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
-            	    .requestMatchers("/api/reservas/**").hasRole("ADMIN")
-            	    .anyRequest().authenticated()
-            	)
+                // 1. ENDPOINTS PÚBLICOS (Cualquier usuario puede entrar)
+                .requestMatchers("/api/auth/**", "/api/health").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/peliculas/cartelera").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/salas/activas").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/funciones/activas").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/sedes/activas").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/funciones/*/asientos").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/funciones/*").permitAll()
+
+                // 2. ENDPOINTS DE CLIENTES AUTENTICADOS (Requieren Login)
+                .requestMatchers(HttpMethod.POST, "/api/pagos/crear").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/pagos/confirmar").authenticated()
+                .requestMatchers("/api/reservas/mis-reservas").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/reservas").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/reservas/*/confirmar").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/reservas/*").authenticated()
+
+                // 3. ENDPOINTS DE ADMINISTRACIÓN (Rutinas Específicas primero)
+                // Dashboard: Cargar el listado total de reservas
+                .requestMatchers(HttpMethod.GET, "/api/reservas").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+                // Dashboard: Cambiar el estado del PUT anterior
+                .requestMatchers(HttpMethod.PUT, "/api/reservas/*/estado").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+
+                // 4. COMODINES DE ADMINISTRACIÓN (Módulos completos)
+                .requestMatchers("/api/peliculas/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+                .requestMatchers("/api/salas/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+                .requestMatchers("/api/sedes/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+                .requestMatchers("/api/funciones/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+                .requestMatchers("/api/usuarios/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+                .requestMatchers("/api/reservas/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+
+                // Cualquier otra ruta no especificada requerirá autenticación básica
+                .anyRequest().authenticated()
+            )
             .addFilterBefore(firebaseAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -67,8 +78,8 @@ public class SecurityConfig {
             "http://localhost:5173",
             "https://josue516.github.io",
             "https://josue516.github.io/AppCine",
-            "null", // apps móviles
-            "*"     // cualquier origen
+            "null", // Soporte para apps móviles
+            "*"     // Comodín global de contingencia
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
@@ -78,11 +89,11 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
+
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> {
             throw new UsernameNotFoundException("Use Firebase Auth");
         };
     }
-    
 }
