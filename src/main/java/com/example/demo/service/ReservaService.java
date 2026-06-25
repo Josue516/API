@@ -274,13 +274,22 @@ public class ReservaService {
     public List<Reserva> obtenerPorUsuario(String usuarioId) {
         return reservaRepository.findByUsuario_Id(usuarioId);
     }
-    public Reserva cambiarEstado(String id, String nuevoEstado) {
+    public void cambiarEstado(String id, String estadoStr) {
         Reserva reserva = reservaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Reserva no encontrada con ID: " + id));
-                
-        reserva.setEstado(EstadoReserva.valueOf(nuevoEstado.toUpperCase()));
+                .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada"));
+
+        EstadoReserva nuevoEstado;
         
-        return reservaRepository.save(reserva);
+        // Traducimos "CONFIRMADA" (Web) a "PAGADA" (Tu Enum)
+        if ("CONFIRMADA".equalsIgnoreCase(estadoStr)) {
+            nuevoEstado = EstadoReserva.PAGADA;
+        } else {
+            // Para cualquier otro estado (CANCELADA, REEMBOLSADA, PENDIENTE) hacemos la conversión normal
+            nuevoEstado = EstadoReserva.valueOf(estadoStr.toUpperCase());
+        }
+
+        reserva.setEstado(nuevoEstado);
+        reservaRepository.save(reserva);
     }
     @Transactional
     public void procesarReembolso(String reservaId) {

@@ -90,8 +90,16 @@ public class ReservaController {
         return ResponseEntity.ok(Map.of("mensaje", "Pago confirmado"));
     }
     @PostMapping("/{id}/reembolsar")
-    public ResponseEntity<String> reembolsarReserva(@PathVariable String id) {
-        reservaService.procesarReembolso(id);
-        return ResponseEntity.ok("Reserva reembolsada y dinero devuelto con éxito.");
+    public ResponseEntity<?> reembolsarReserva(@PathVariable String id) {
+        try {
+            reservaService.procesarReembolso(id);
+            return ResponseEntity.ok(Map.of(
+                "mensaje", "Reserva reembolsada y dinero devuelto con éxito.",
+                "id", id
+            ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 }
