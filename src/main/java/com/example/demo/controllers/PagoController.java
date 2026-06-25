@@ -29,15 +29,6 @@ public class PagoController {
         return ResponseEntity.ok(Map.of("orderId", orderId));
     }
 
-    @PostMapping("/confirmar")
-    public ResponseEntity<?> confirmar(@RequestBody Map<String, String> body) {
-        String reservaId = body.get("reservaId");
-        String paypalOrderId = body.get("paypalOrderId");
-        String captureId = body.get("captureId");
-        String pagoId = pagoService.registrarPago(reservaId, paypalOrderId, captureId);
-        return ResponseEntity.ok(Map.of("pagoId", pagoId));
-    }
-
     @GetMapping("/reserva/{reservaId}")
     public Pago obtenerPorReserva(@PathVariable String reservaId) {
         return pagoService.obtenerPagoPorReserva(reservaId);
