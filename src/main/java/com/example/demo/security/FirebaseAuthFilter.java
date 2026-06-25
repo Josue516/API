@@ -40,13 +40,9 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
                 FirebaseToken decoded = FirebaseAuth.getInstance().verifyIdToken(token);
                 String uid = decoded.getUid();
                 
-                System.out.println("UID verificado: " + uid);
-;
-                
                 String rol = usuarioRepository.findById(uid)
                         .map(u -> u.getRol().name())
                         .orElse("CLIENTE");
-                System.out.println("Rol asignado: " + rol);
                 List<GrantedAuthority> authorities =
                         List.of(new SimpleGrantedAuthority("ROLE_" + rol));
 
@@ -55,7 +51,6 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
             } catch (FirebaseAuthException e) {
-            	System.out.println("Token inválido: " + e.getMessage());
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }

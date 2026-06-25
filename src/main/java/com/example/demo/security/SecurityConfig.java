@@ -62,10 +62,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
+        config.setAllowedOriginPatterns(List.of(
             "http://localhost:5173",
             "https://josue516.github.io",
-            "https://josue516.github.io/AppCine"
+            "https://josue516.github.io/AppCine",
+            "null", // apps móviles
+            "*"     // cualquier origen
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
