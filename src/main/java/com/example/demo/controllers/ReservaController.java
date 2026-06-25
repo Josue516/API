@@ -43,14 +43,12 @@ public class ReservaController {
     @PutMapping("/{id}/estado")
     public ResponseEntity<?> actualizarEstado(
             @PathVariable String id, 
-            @RequestParam String estado) {
+            @RequestParam(name = "estado") String estado) { 
         try {
             Reserva reservaActualizada = reservaService.cambiarEstado(id, estado);
             return ResponseEntity.ok(reservaActualizada);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Estado no válido: " + estado);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
     @PutMapping("/{id}")
