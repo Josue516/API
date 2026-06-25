@@ -3,6 +3,7 @@ package com.example.demo.service;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.enums.EstadoAsiento;
@@ -25,7 +26,18 @@ public class PagoService {
     private final PagoRepository pagoRepository;
     private final ReservaRepository reservaRepository;
     private final AsientoFuncionRepository asientoFuncionRepository;
-    
+    @Autowired
+    private PaypalService paypalService;
+    public String crearOrden(String reservaId) {
+        Reserva reserva = reservaRepository.findById(reservaId)
+                .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
+
+        if (reserva.getEstado() != EstadoReserva.PENDIENTE) {
+            throw new RuntimeException("La reserva no está en estado válido para pago");
+        }
+
+        return paypalService.crearOrden(reserva.getTotal(), "USD");
+    }
     @Transactional
     public String registrarPago(
             String reservaId,

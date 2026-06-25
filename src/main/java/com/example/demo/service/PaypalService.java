@@ -1,6 +1,8 @@
 package com.example.demo.service;
 
+import java.math.BigDecimal;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +20,37 @@ public class PaypalService {
     private String clientSecret;
 
     private final String BASE_URL = "https://api-m.sandbox.paypal.com"; // URL de pruebas
+    
+    public String crearOrden(BigDecimal monto, String moneda) {
+        try {
+            String token = getAccessToken();
+            RestClient restClient = RestClient.create();
+
+            Map<String, Object> orderRequest = Map.of(
+                "intent", "CAPTURE",
+                "purchase_units", List.of(Map.of(
+                    "amount", Map.of(
+                        "currency_code", moneda,
+                        "value", monto.toString()
+                    )
+                ))
+            );
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = restClient.post()
+                    .uri(BASE_URL + "/v2/checkout/orders")
+                    .header("Authorization", "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(orderRequest)
+                    .retrieve()
+                    .body(Map.class);
+
+            return response.get("id").toString();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error al crear orden PayPal: " + e.getMessage());
+        }
+    }
 
     // Método para obtener el Token de acceso (OAuth2)
     private String getAccessToken() {

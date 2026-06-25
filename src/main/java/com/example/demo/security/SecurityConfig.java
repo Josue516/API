@@ -31,6 +31,8 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
             	    .requestMatchers("/api/auth/**", "/api/health").permitAll()
+            	    .requestMatchers(HttpMethod.POST, "/api/pagos/crear").authenticated()
+            	    .requestMatchers(HttpMethod.POST, "/api/pagos/confirmar").authenticated()
             	    // Endpoints públicos para clientes (solo datos activos)
             	    .requestMatchers(HttpMethod.GET, "/api/peliculas/cartelera").permitAll()
             	    .requestMatchers(HttpMethod.GET, "/api/salas/activas").permitAll()
