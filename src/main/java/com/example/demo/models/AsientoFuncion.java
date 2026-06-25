@@ -2,6 +2,7 @@ package com.example.demo.models;
 
 import com.example.demo.enums.EstadoAsiento;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -48,7 +49,7 @@ public class AsientoFuncion {
     @Column(name = "estado", nullable = false)
     private EstadoAsiento estado;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "reservaId")
     private Reserva reserva;
 
