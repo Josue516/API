@@ -40,6 +40,7 @@ public class SecurityConfig {
             	    .requestMatchers(HttpMethod.GET, "/api/sedes/activas").permitAll()
             	    .requestMatchers(HttpMethod.GET, "/api/funciones/*/asientos").permitAll()
             	    .requestMatchers(HttpMethod.GET, "/api/funciones/*").permitAll()
+            	    .requestMatchers(HttpMethod.PUT, "/api/reservas/*/estado").hasRole("ADMIN")
             	    // Endpoints de clientes autenticados — DEBEN IR ANTES de hasRole("ADMIN")
             	    .requestMatchers("/api/reservas/mis-reservas").authenticated()
             	    .requestMatchers(HttpMethod.POST, "/api/reservas").authenticated()
@@ -51,7 +52,7 @@ public class SecurityConfig {
             	    .requestMatchers("/api/sedes/**").hasRole("ADMIN")
             	    .requestMatchers("/api/funciones/**").hasRole("ADMIN")
             	    .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
-            	    .requestMatchers("/api/reservas/**").hasRole("ADMIN") // ⬅️ movido al final
+            	    .requestMatchers("/api/reservas/**").hasRole("ADMIN")
             	    .anyRequest().authenticated()
             	)
             .addFilterBefore(firebaseAuthFilter, UsernamePasswordAuthenticationFilter.class);
