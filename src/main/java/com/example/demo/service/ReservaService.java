@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +47,8 @@ public class ReservaService {
     private final PeliculaRepository peliculaRepository;
     private final SalaRepository salaRepository;
     private final SedeRepository sedeRepository;
-    
+    @Autowired
+    private PaypalService paypalService;
     public List<Reserva> obtenerTodas() {
         return reservaRepository.findAll();
     }
@@ -138,25 +140,29 @@ public class ReservaService {
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
 
+        // Capturar el pago en PayPal
+        String captureIdReal = paypalService.capturarOrden(paypalOrderId);
+
         reserva.setEstado(EstadoReserva.PAGADA);
 
         Pago pago = Pago.builder()
                 .id(UUID.randomUUID().toString())
                 .reserva(reserva)
                 .paypalOrderId(paypalOrderId)
-                .paypalCaptureId(captureId)
+                .paypalCaptureId(captureIdReal)
                 .monto(reserva.getTotal())
                 .estado(EstadoPago.COMPLETADO)
                 .fechaPago(System.currentTimeMillis())
                 .build();
+
         pagoRepository.save(pago);
-        // Marcar asientos como OCUPADOS
-        List<AsientoFuncion> asientos = asientoFuncionRepository
-                .findByReserva_Id(reservaId);
+
+        List<AsientoFuncion> asientos = asientoFuncionRepository.findByReserva_Id(reservaId);
         for (AsientoFuncion af : asientos) {
             af.setEstado(EstadoAsiento.OCUPADO);
             af.setReservadoHasta(null);
         }
+
         asientoFuncionRepository.saveAll(asientos);
         reservaRepository.save(reserva);
     }

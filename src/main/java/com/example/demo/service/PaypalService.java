@@ -87,4 +87,35 @@ public class PaypalService {
             return false;
         }
     }
+    public String capturarOrden(String orderId) {
+        try {
+            String token = getAccessToken();
+            RestClient restClient = RestClient.create();
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = restClient.post()
+                    .uri(BASE_URL + "/v2/checkout/orders/" + orderId + "/capture")
+                    .header("Authorization", "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body("{}")
+                    .retrieve()
+                    .body(Map.class);
+
+            // Extraer el captureId de la respuesta
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> purchaseUnits =
+                    (List<Map<String, Object>>) response.get("purchase_units");
+            @SuppressWarnings("unchecked")
+            Map<String, Object> payments =
+                    (Map<String, Object>) purchaseUnits.get(0).get("payments");
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> captures =
+                    (List<Map<String, Object>>) payments.get("captures");
+
+            return captures.get(0).get("id").toString();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error al capturar orden PayPal: " + e.getMessage());
+        }
+    }
 }
