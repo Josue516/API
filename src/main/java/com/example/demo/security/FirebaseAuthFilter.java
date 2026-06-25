@@ -49,6 +49,9 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
                 UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(uid, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                
+                System.out.println("Authentication set: " + SecurityContextHolder.getContext().getAuthentication());
+                System.out.println("Authorities: " + SecurityContextHolder.getContext().getAuthentication().getAuthorities());
 
             } catch (FirebaseAuthException e) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
