@@ -2,6 +2,8 @@ package com.example.demo.controllers;
 
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.dto.CrearReservaDTO;
 import com.example.demo.dto.ReservaDetalleDTO;
@@ -23,7 +26,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ReservaController {
 
-    private final ReservaService reservaService;
+	@Autowired
+    private ReservaService reservaService;
     
     @GetMapping
     public List<Reserva> listar() {
@@ -35,6 +39,19 @@ public class ReservaController {
                 .getAuthentication().getPrincipal();
         String id = reservaService.crearReserva(uid, dto.getFuncionId(), dto.getAsientoIds());
         return ResponseEntity.ok(Map.of("id", id));
+    }
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<?> actualizarEstado(
+            @PathVariable String id, 
+            @RequestParam String estado) {
+        try {
+            Reserva reservaActualizada = reservaService.cambiarEstado(id, estado);
+            return ResponseEntity.ok(reservaActualizada);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Estado no válido: " + estado);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
     }
     @PutMapping("/{id}")
     public void actualizar(

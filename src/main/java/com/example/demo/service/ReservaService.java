@@ -274,4 +274,12 @@ public class ReservaService {
     public List<Reserva> obtenerPorUsuario(String usuarioId) {
         return reservaRepository.findByUsuario_Id(usuarioId);
     }
+    public Reserva cambiarEstado(String id, String nuevoEstado) {
+        Reserva reserva = reservaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reserva no encontrada con ID: " + id));
+                
+        reserva.setEstado(EstadoReserva.valueOf(nuevoEstado.toUpperCase()));
+        
+        return reservaRepository.save(reserva);
+    }
 }
