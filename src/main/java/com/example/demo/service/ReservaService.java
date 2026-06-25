@@ -140,12 +140,11 @@ public class ReservaService {
 
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
-
         // Capturar el pago en PayPal
         String captureIdReal = paypalService.capturarOrden(paypalOrderId);
-
+        // Cambiar estado de la reserva
         reserva.setEstado(EstadoReserva.PAGADA);
-
+        // Registrar el comprobante de pago
         Pago pago = Pago.builder()
                 .id(UUID.randomUUID().toString())
                 .reserva(reserva)
@@ -155,15 +154,14 @@ public class ReservaService {
                 .estado(EstadoPago.COMPLETADO)
                 .fechaPago(System.currentTimeMillis())
                 .build();
-
         pagoRepository.save(pago);
-
+        // Bloquear los asientos de forma definitiva
         List<AsientoFuncion> asientos = asientoFuncionRepository.findByReserva_Id(reservaId);
         for (AsientoFuncion af : asientos) {
             af.setEstado(EstadoAsiento.OCUPADO);
-            af.setReservadoHasta(null);
+            af.setReservadoHasta(null); // Eliminamos el tiempo de expiración temporal
         }
-
+        // 5. Guardar todo en la base de datos
         asientoFuncionRepository.saveAll(asientos);
         reservaRepository.save(reserva);
     }
@@ -293,27 +291,19 @@ public class ReservaService {
     }
     @Transactional
     public void procesarReembolso(String reservaId) {
-        // Validar la reserva
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada con ID: " + reservaId));
         if (reserva.getEstado() != EstadoReserva.PAGADA) { 
             throw new IllegalStateException("Solo se pueden reembolsar reservas con estado PAGADA");
         }
-        // Cambiar el estado de la reserva a REEMBOLSADA
         reserva.setEstado(EstadoReserva.REEMBOLSADA);
-        reservaRepository.save(reserva);
-        // Buscamos todos los registros intermedios que tengan el ID de esta reserva
         List<AsientoFuncion> asientosDeLaFuncion = asientoFuncionRepository.findByReserva_Id(reservaId);
-        
         for (AsientoFuncion af : asientosDeLaFuncion) {
-            // Pasamos el estado a DISPONIBLE
             af.setEstado(EstadoAsiento.DISPONIBLE); 
-            // Opcional: Si manejaban un tiempo de expiración de reserva, lo limpiamos
             af.setReservadoHasta(null); 
-            // Desasociamos la reserva para que el asiento vuelva a quedar completamente huérfano y libre
-            af.setReserva(null); 
+            af.setReserva(null); // Rompe la relación limpiamente
         }
-        // Guardamos los cambios de los asientos en el lote correspondiente
         asientoFuncionRepository.saveAll(asientosDeLaFuncion);
+        reservaRepository.save(reserva); // 🟢 Al estar al final, JPA procesa los estados de manera coherente
     }
 }
