@@ -140,11 +140,11 @@ public class ReservaService {
 
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
-        // Capturar el pago en PayPal
+
         String captureIdReal = paypalService.capturarOrden(paypalOrderId);
-        // Cambiar estado de la reserva
+
         reserva.setEstado(EstadoReserva.PAGADA);
-        // Registrar el comprobante de pago
+
         Pago pago = Pago.builder()
                 .id(UUID.randomUUID().toString())
                 .reserva(reserva)
@@ -154,16 +154,13 @@ public class ReservaService {
                 .estado(EstadoPago.COMPLETADO)
                 .fechaPago(System.currentTimeMillis())
                 .build();
-        pagoRepository.save(pago);
-        // Bloquear los asientos de forma definitiva
-        List<AsientoFuncion> asientos = asientoFuncionRepository.findByReserva_Id(reservaId);
+
+        pagoRepository.save(pago); 
+       List<AsientoFuncion> asientos = asientoFuncionRepository.findByReserva_Id(reservaId);
         for (AsientoFuncion af : asientos) {
             af.setEstado(EstadoAsiento.OCUPADO);
-            af.setReservadoHasta(null); // Eliminamos el tiempo de expiración temporal
-        }
-        // 5. Guardar todo en la base de datos
-        asientoFuncionRepository.saveAll(asientos);
-        reservaRepository.save(reserva);
+            af.setReservadoHasta(null);
+        } 
     }
     @Transactional
     public void cancelarReserva(String reservaId) {
