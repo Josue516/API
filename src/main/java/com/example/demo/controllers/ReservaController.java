@@ -45,9 +45,14 @@ public class ReservaController {
             @PathVariable String id, 
             @RequestParam(name = "estado") String estado) { 
         try {
-            Reserva reservaActualizada = reservaService.cambiarEstado(id, estado);
-            return ResponseEntity.ok(reservaActualizada);
+            reservaService.cambiarEstado(id, estado); // Ejecuta el cambio en la BD
+            return ResponseEntity.ok(Map.of(
+                "mensaje", "Estado actualizado con éxito",
+                "id", id,
+                "nuevoEstado", estado.toUpperCase()
+            ));
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
