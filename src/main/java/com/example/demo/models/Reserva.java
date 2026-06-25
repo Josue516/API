@@ -32,7 +32,7 @@ public class Reserva {
     @Column(name = "id", nullable = false, length = 36)
     private String id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "usuarioId", nullable = false)
     private Usuario usuario;
 
