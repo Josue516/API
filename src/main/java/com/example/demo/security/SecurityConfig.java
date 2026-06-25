@@ -47,6 +47,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/reservas/mis-reservas").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/reservas").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/reservas/*/confirmar").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/reservas/*/reembolsar").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/api/reservas/*").authenticated()
 
                 // 3. ENDPOINTS DE ADMINISTRACIÓN (Rutinas Específicas primero)
