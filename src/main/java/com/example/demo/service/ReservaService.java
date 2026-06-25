@@ -131,7 +131,8 @@ public class ReservaService {
         }
 
         asientoFuncionRepository.saveAll(asientos);
-
+        System.out.println("FuncionId: " + funcionId);
+        System.out.println("AsientoIds: " + asientoIds);
         return reserva.getId();
     }
     @Transactional
