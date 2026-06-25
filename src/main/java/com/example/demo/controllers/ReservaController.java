@@ -89,4 +89,9 @@ public class ReservaController {
         reservaService.confirmarPago(id, paypalOrderId, captureId);
         return ResponseEntity.ok(Map.of("mensaje", "Pago confirmado"));
     }
+    @PostMapping("/{id}/reembolsar")
+    public ResponseEntity<String> reembolsarReserva(@PathVariable String id) {
+        reservaService.procesarReembolso(id);
+        return ResponseEntity.ok("Reserva reembolsada y dinero devuelto con éxito.");
+    }
 }
